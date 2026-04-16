@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seattle Date Night Planner Agent</title>
+  <style>
+    :root {
+      --bg: #f7f9f8;
+      --surface: #ffffff;
+      --ink: #202529;
+      --muted: #5d6662;
+      --line: #d7dfda;
+      --teal: #0b7a75;
+      --teal-soft: #dff3ef;
+      --coral: #d84d3f;
+      --coral-soft: #fde8e4;
+      --gold: #d9a71f;
+      --gold-soft: #fff2bd;
+      --green: #2e7d46;
+      --green-soft: #e5f5e8;
+      --radius: 8px;
+      --shadow: 0 16px 44px rgba(32, 37, 41, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    img { display: block; max-width: 100%; }
+    button, input, select { font: inherit; }
+    h1, h2, h3, p { overflow-wrap: anywhere; }
+
+    .app-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 360px);
+      gap: 24px;
+      align-items: center;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--teal);
+      font-size: 0.86rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: 2.5rem;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.12rem;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 730px;
+      margin: 16px 0 0;
+      color: var(--muted);
+    }
+
+    .scene-frame {
+      overflow: hidden;
+      background: #e8f4f1;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+      margin-top: 24px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(32, 37, 41, 0.08);
+    }
+
+    .planner-form {
+      position: sticky;
+      top: 16px;
+      padding: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 750;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 11px;
+      color: var(--ink);
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      outline: none;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 11px;
+      color: var(--ink);
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      outline: none;
+    }
+
+    select:focus,
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.15);
+    }
+
+    .primary-button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 6px;
+      color: #ffffff;
+      background: var(--teal);
+      border: 0;
+      border-radius: var(--radius);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(11, 122, 117, 0.24);
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .primary-button:hover {
+      background: #086a66;
+      transform: translateY(-1px);
+    }
+
+    .primary-button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+      transform: none;
+    }
+
+    .helper {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .token-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .main-column {
+      display: grid;
+      gap: 24px;
+    }
+
+    .workflow,
+    .output-panel {
+      padding: 20px;
+    }
+
+    .workflow-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 58px;
+      padding: 10px;
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .stage span {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .stage strong {
+      display: block;
+      font-weight: 800;
+    }
+
+    .stage p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .stage em {
+      min-width: 78px;
+      padding: 5px 8px;
+      color: var(--muted);
+      background: #f1f4f2;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-style: normal;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .stage.is-running {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+    }
+
+    .stage.is-complete {
+      background: var(--green-soft);
+      border-color: #a8d9b1;
+    }
+
+    .stage.is-complete span {
+      color: #ffffff;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .stage.is-running em,
+    .stage.is-complete em {
+      background: #ffffff;
+    }
+
+    .trace-panel {
+      padding: 16px 20px;
+      background: var(--teal-soft);
+      border-left: 4px solid var(--teal);
+      border-radius: var(--radius);
+    }
+
+    .trace-panel h2 {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .trace-panel ul {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      color: #24423f;
+      font-size: 0.92rem;
+      list-style: none;
+    }
+
+    .feedback-panel {
+      padding: 20px;
+    }
+
+    .feedback-question {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    .feedback-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .choice-button {
+      min-height: 48px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .choice-button.is-selected {
+      color: #075c58;
+      background: var(--teal-soft);
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.12);
+    }
+
+    .secondary-button {
+      min-height: 44px;
+      margin-top: 12px;
+      padding: 9px 14px;
+      color: #ffffff;
+      background: var(--coral);
+      border: 0;
+      border-radius: var(--radius);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .output-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    pre {
+      min-height: 420px;
+      max-height: 720px;
+      margin: 0;
+      padding: 16px;
+      overflow: auto;
+      color: #effaf7;
+      background: #202529;
+      border-radius: var(--radius);
+      font-size: 0.86rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      display: grid;
+      min-height: 420px;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+
+    .date-card {
+      display: none;
+      gap: 16px;
+    }
+
+    .date-card.is-visible {
+      display: grid;
+    }
+
+    .date-header {
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .date-title {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+      line-height: 1.15;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      color: var(--ink);
+      background: #f1f4f2;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 750;
+    }
+
+    .pill.teal {
+      color: #075c58;
+      background: var(--teal-soft);
+      border-color: #a8d9d4;
+    }
+
+    .pill.coral {
+      color: #8d2e26;
+      background: var(--coral-soft);
+      border-color: #f1b0a8;
+    }
+
+    .weather-note,
+    .backup-box,
+    .final-note-box,
+    .stop {
+      padding: 14px;
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .weather-note strong,
+    .backup-box strong,
+    .final-note-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stop-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stop {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 12px;
+      background: #ffffff;
+    }
+
+    .stop-number {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      color: #ffffff;
+      background: var(--coral);
+      border-radius: 999px;
+      font-weight: 900;
+    }
+
+    .stop h3 {
+      margin: 0 0 4px;
+      font-size: 1.05rem;
+      line-height: 1.25;
+    }
+
+    .stop p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .category {
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 6px;
+      padding: 3px 8px;
+      color: #075c58;
+      background: var(--teal-soft);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .review-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .small-heading {
+      margin: 4px 0 8px;
+      font-size: 0.96rem;
+    }
+
+    @media (max-width: 960px) {
+      .topbar,
+      .layout,
+      .output-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .planner-form { position: static; }
+      h1 { font-size: 2rem; }
+    }
+
+    @media (max-width: 560px) {
+      .app-shell {
+        width: min(100% - 20px, 1180px);
+        padding-top: 10px;
+      }
+
+      .topbar,
+      .planner-form,
+      .workflow,
+      .feedback-panel,
+      .output-panel {
+        padding: 16px;
+      }
+
+      h1 { font-size: 1.68rem; }
+
+      .stage {
+        grid-template-columns: 30px minmax(0, 1fr);
+      }
+
+      .stage em {
+        grid-column: 2;
+        width: fit-content;
+        min-width: 0;
+      }
+
+      .stop {
+        grid-template-columns: 1fr;
+      }
+
+      .feedback-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Agentic AI demo</p>
+        <h1>Seattle Date Night Planner Agent</h1>
+        <p class="intro">Choose a few constraints and watch the planner move through collection, classification, midloop feedback, API refinement, self-review, and improvement before returning JSON and a polished itinerary.</p>
+      </div>
+      <div class="scene-frame" aria-hidden="true">
+        <img alt="" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420"><rect width="720" height="420" fill="%23e8f4f1"/><path d="M0 310 C130 280 218 330 342 292 C485 248 574 306 720 270 L720 420 L0 420 Z" fill="%230b7a75" opacity=".25"/><rect x="80" y="190" width="52" height="110" fill="%23202529"/><rect x="152" y="150" width="60" height="150" fill="%232d3438"/><rect x="235" y="198" width="86" height="102" fill="%23202529"/><rect x="345" y="170" width="54" height="130" fill="%232d3438"/><rect x="423" y="130" width="70" height="170" fill="%23202529"/><rect x="520" y="184" width="58" height="116" fill="%232d3438"/><rect x="600" y="212" width="70" height="88" fill="%23202529"/><path d="M477 130 L458 86 L440 130 Z" fill="%23202529"/><path d="M460 84 L460 34" stroke="%23202529" stroke-width="8" stroke-linecap="round"/><path d="M277 198 L287 118 L297 198 Z" fill="%23202529"/><circle cx="608" cy="86" r="34" fill="%23d9a71f"/><path d="M72 332 C182 300 286 334 396 304 C508 276 596 308 680 286" fill="none" stroke="%23fff" stroke-width="9" opacity=".72"/><circle cx="125" cy="220" r="4" fill="%23fff2bd"/><circle cx="182" cy="178" r="4" fill="%23fff2bd"/><circle cx="372" cy="208" r="4" fill="%23fff2bd"/><circle cx="462" cy="166" r="4" fill="%23fff2bd"/><circle cx="550" cy="216" r="4" fill="%23fff2bd"/><circle cx="640" cy="238" r="4" fill="%23fff2bd"/></svg>'>
+      </div>
+    </header>
+
+    <div class="layout">
+      <form class="panel planner-form" id="plannerForm">
+        <h2>Plan Inputs</h2>
+        <div class="form-grid">
+          <label>Budget<select id="budget" name="budget"><option value="$">$</option><option value="$$" selected>$$</option><option value="$$$">$$$</option></select></label>
+          <label>Vibe<select id="vibe" name="vibe"><option value="romantic" selected>Romantic</option><option value="fun">Fun</option><option value="adventurous">Adventurous</option><option value="cozy">Cozy</option></select></label>
+          <label>Time of day<select id="timeOfDay" name="timeOfDay"><option value="afternoon">Afternoon</option><option value="evening" selected>Evening</option><option value="full night">Full night</option></select></label>
+          <label>Cuisine preference<input id="cuisine" name="cuisine" type="text" value="seafood" placeholder="Example: sushi, Thai, vegan, seafood"></label>
+          <label>Activity level<select id="activityLevel" name="activityLevel"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+          <label>Special occasion<select id="specialOccasion" name="specialOccasion"><option value="yes">Yes</option><option value="no" selected>No</option></select></label>
+          <label>Weather<select id="weather" name="weather"><option value="clear" selected>Clear</option><option value="rainy">Rainy</option><option value="cloudy">Cloudy</option><option value="cold">Cold</option></select></label>
+          <label>OpenAI API token<input id="apiToken" name="apiToken" type="password" placeholder="sk-..." autocomplete="off" required></label>
+          <label>Model<input id="apiModel" name="apiModel" type="text" value="gpt-4.1-mini" required></label>
+          <p class="token-note">For this class demo, the token is used only in this browser session and is never saved. A backend proxy is safer for production.</p>
+          <button class="primary-button" type="submit">Generate Agentic Date Plan</button>
+        </div>
+        <p class="helper">The planner uses local deterministic logic, pauses for your feedback midloop, then makes one API refinement call before producing the final plan.</p>
+      </form>
+
+      <section class="main-column" aria-live="polite">
+        <section class="panel workflow">
+          <h2>Visible Agent Workflow</h2>
+          <ol class="workflow-list" id="workflowList">
+            <li class="stage" data-stage="collect"><span>1</span><div><strong>Input collected</strong><p>Waiting for choices.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="classify"><span>2</span><div><strong>Date type selected</strong><p>Classification will use vibe, weather, activity, and occasion.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="feedback"><span>3</span><div><strong>Midloop feedback requested</strong><p>The agent will ask one clarification question before drafting.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="draft"><span>4</span><div><strong>Draft itinerary generated</strong><p>The first pass will assemble 2 to 4 Seattle-specific stops.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="review"><span>5</span><div><strong>Review completed</strong><p>The self-review checks coherence, weather fit, pacing, and creativity.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="api"><span>6</span><div><strong>API refinement completed</strong><p>The agent will call the API for one final critique pass.</p></div><em>Pending</em></li>
+            <li class="stage" data-stage="improve"><span>7</span><div><strong>Final itinerary improved</strong><p>The final plan will respond to the critique and your feedback.</p></div><em>Pending</em></li>
+          </ol>
+        </section>
+
+        <section class="trace-panel">
+          <h2>Agent Trace</h2>
+          <ul id="traceLog"><li>Ready to run the planning workflow.</li></ul>
+        </section>
+
+        <section class="panel feedback-panel" id="feedbackPanel" hidden>
+          <h2>Midloop Clarification</h2>
+          <p class="feedback-question" id="feedbackQuestion">The agent will ask one follow-up question here.</p>
+          <div class="feedback-options" id="feedbackOptions"></div>
+          <label>Optional note for the agent<input id="feedbackNote" type="text" placeholder="Example: avoid long walks, must include views, wants mocktails"></label>
+          <button class="secondary-button" type="button" id="continuePlanningButton">Continue Planning</button>
+        </section>
+
+        <div class="output-grid">
+          <section class="panel output-panel">
+            <h2>Structured JSON Output</h2>
+            <pre id="jsonOutput">Click "Generate Agentic Date Plan" to create a structured plan.</pre>
+          </section>
+          <section class="panel output-panel">
+            <h2>Final Itinerary Card</h2>
+            <div class="empty-state" id="emptyState">Your improved Seattle date plan will appear here.</div>
+            <article class="date-card" id="dateCard"></article>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const stageCopy = {
+      collect: ["Waiting for choices.", "Reading form values.", "Input packet captured."],
+      classify: ["Classification will use vibe, weather, activity, and occasion.", "Selecting a date type.", "Date type selected."],
+      feedback: ["The agent will ask one clarification question before drafting.", "Waiting for user feedback.", "User feedback incorporated."],
+      draft: ["The first pass will assemble 2 to 4 Seattle-specific stops.", "Composing the first-pass route.", "Draft itinerary generated."],
+      review: ["The self-review checks coherence, weather fit, pacing, and creativity.", "Critiquing the draft.", "Review completed."],
+      api: ["The agent will call the API for one final critique pass.", "Calling the API refinement checkpoint.", "API refinement completed."],
+      improve: ["The final plan will respond to the critique and your feedback.", "Applying improvements.", "Final itinerary improved."]
+    };
+
+    const neighborhoods = {
+      romantic: { clear: "Queen Anne and Kerry Park", rainy: "Capitol Hill and Pike/Pine", cloudy: "Madison Valley and Capitol Hill", cold: "Queen Anne and Uptown" },
+      fun: { clear: "Fremont and Gas Works Park", rainy: "Ballard and Fremont", cloudy: "Capitol Hill and the Central District", cold: "Ballard and Phinney Ridge" },
+      adventurous: { clear: "West Seattle and Alki", rainy: "Pioneer Square and the waterfront", cloudy: "South Lake Union and Lake Union", cold: "Georgetown and SODO" },
+      cozy: { clear: "Wallingford and Green Lake", rainy: "Columbia City and Hillman City", cloudy: "Phinney Ridge and Greenwood", cold: "Ballard and Sunset Hill" }
+    };
+
+    const weatherAdjustments = {
+      clear: "Lean into Seattle viewpoints and short outdoor walks, while keeping dinner close enough that the night still feels relaxed.",
+      rainy: "Prioritize covered markets, intimate indoor stops, and short transfers so the rain feels atmospheric instead of inconvenient.",
+      cloudy: "Use flexible indoor anchors with one scenic window, since cloudy Seattle light is soft but views can change quickly.",
+      cold: "Cluster warm indoor stops and add a cozy drink or dessert pause so the plan never depends on staying outside too long."
+    };
+
+    const backupOptions = {
+      clear: {
+        name: "Sunset viewpoint swap",
+        description: "If the route is moving faster than expected, add a short viewpoint stop at Kerry Park, Gas Works Park, or the Alki promenade."
+      },
+      rainy: {
+        name: "Rain-safe neighborhood pivot",
+        description: "If the weather gets messy, switch the scenic portion to a covered market wander, a bookstore cafe, or a small gallery-style stop nearby."
+      },
+      cloudy: {
+        name: "Flexible view or cafe pivot",
+        description: "If the clouds lift, keep the scenic stop. If they thicken, trade it for a warm cafe or dessert counter in the same neighborhood."
+      },
+      cold: {
+        name: "Warm-up pause",
+        description: "If the temperature drops, replace any outdoor stroll with a tea, cocoa, or wine-bar-style stop before heading home."
+      }
+    };
+    const form = document.querySelector("#plannerForm");
+    const traceLog = document.querySelector("#traceLog");
+    const jsonOutput = document.querySelector("#jsonOutput");
+    const dateCard = document.querySelector("#dateCard");
+    const emptyState = document.querySelector("#emptyState");
+    const submitButton = form.querySelector("button");
+    const feedbackPanel = document.querySelector("#feedbackPanel");
+    const feedbackQuestion = document.querySelector("#feedbackQuestion");
+    const feedbackOptions = document.querySelector("#feedbackOptions");
+    const feedbackNote = document.querySelector("#feedbackNote");
+    const continuePlanningButton = document.querySelector("#continuePlanningButton");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      submitButton.disabled = true;
+      resetWorkflow();
+      traceLog.innerHTML = "";
+      jsonOutput.textContent = "Running agent workflow...";
+      dateCard.classList.remove("is-visible");
+      feedbackPanel.hidden = true;
+      emptyState.style.display = "grid";
+      emptyState.textContent = "The agent is collecting inputs, asking for midloop feedback, calling the API, and improving the itinerary.";
+
+      try {
+        const result = await runAgentWorkflow();
+        renderJson(result);
+        renderItinerary(result);
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    async function runAgentWorkflow() {
+      setStage("collect", "running");
+      await pause(320);
+      const inputs = collectInputs();
+      setStage("collect", "complete", `Captured ${inputs.budget} budget, ${inputs.vibe} vibe, ${inputs.timeOfDay}, ${inputs.weather} weather.`);
+      addTrace(`Input collected: ${inputs.vibe}, ${inputs.timeOfDay}, ${inputs.activityLevel} activity, ${inputs.weather} weather.`);
+
+      setStage("classify", "running");
+      await pause(420);
+      const classification = classifyDateType(inputs);
+      setStage("classify", "complete", classification.dateType);
+      addTrace(`Date type selected: ${classification.dateType}.`);
+
+      setStage("feedback", "running");
+      const midloopFeedback = await requestMidloopFeedback(inputs, classification);
+      setStage("feedback", "complete", `User chose: ${midloopFeedback.label}.`);
+      addTrace(`Midloop feedback incorporated: ${midloopFeedback.label}${midloopFeedback.note ? `; note: ${midloopFeedback.note}` : ""}.`);
+
+      setStage("draft", "running");
+      await pause(480);
+      const draftPlan = generateDraftItinerary(inputs, classification, midloopFeedback);
+      setStage("draft", "complete", `${draftPlan.itinerary.length} draft stops in ${classification.neighborhood}.`);
+      addTrace(`Draft itinerary generated with ${draftPlan.itinerary.length} stops across ${classification.neighborhood}.`);
+
+      setStage("review", "running");
+      await pause(520);
+      const reviewNotes = reviewDraft(draftPlan, inputs, classification, midloopFeedback);
+      setStage("review", "complete", `${reviewNotes.length} critique notes produced.`);
+      addTrace(`Review completed: ${reviewNotes[0]}`);
+
+      setStage("api", "running");
+      const apiFeedback = await requestApiRefinement(inputs, classification, midloopFeedback, draftPlan, reviewNotes);
+      setStage("api", "complete", apiFeedback.ok ? "Live API refinement received." : "API call attempted; local fallback recorded.");
+      addTrace(apiFeedback.ok ? "API refinement completed successfully." : `API refinement fallback: ${apiFeedback.error}`);
+
+      setStage("improve", "running");
+      await pause(520);
+      const finalPlan = improveItinerary(draftPlan, reviewNotes, inputs, classification, midloopFeedback, apiFeedback);
+      setStage("improve", "complete", "Improved plan ready for JSON and card rendering.");
+      addTrace("Final itinerary improved and rendered below.");
+      return finalPlan;
+    }
+
+    function collectInputs() {
+      const fields = form.elements;
+      const cuisineValue = fields.cuisine.value.trim();
+      return {
+        budget: fields.budget.value,
+        vibe: fields.vibe.value,
+        timeOfDay: fields.timeOfDay.value,
+        cuisine: cuisineValue || "chef's choice",
+        activityLevel: fields.activityLevel.value,
+        specialOccasion: fields.specialOccasion.value,
+        weather: fields.weather.value,
+        apiToken: fields.apiToken.value.trim(),
+        apiModel: fields.apiModel.value.trim()
+      };
+    }
+
+    function requestMidloopFeedback(inputs, classification) {
+      const prompt = buildFeedbackPrompt(inputs, classification);
+      let selected = prompt.options[0];
+
+      feedbackQuestion.textContent = prompt.question;
+      feedbackNote.value = "";
+      feedbackOptions.innerHTML = "";
+
+      prompt.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `choice-button${index === 0 ? " is-selected" : ""}`;
+        button.textContent = option.label;
+        button.setAttribute("aria-pressed", index === 0 ? "true" : "false");
+
+        button.addEventListener("click", () => {
+          selected = option;
+          feedbackOptions.querySelectorAll(".choice-button").forEach((choice) => {
+            choice.classList.remove("is-selected");
+            choice.setAttribute("aria-pressed", "false");
+          });
+          button.classList.add("is-selected");
+          button.setAttribute("aria-pressed", "true");
+        });
+
+        feedbackOptions.appendChild(button);
+      });
+
+      feedbackPanel.hidden = false;
+      feedbackPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      return new Promise((resolve) => {
+        continuePlanningButton.onclick = () => {
+          const note = feedbackNote.value.trim();
+          feedbackPanel.hidden = true;
+          resolve({
+            question: prompt.question,
+            choice: selected.value,
+            label: selected.label,
+            instruction: selected.instruction,
+            note
+          });
+        };
+      });
+    }
+
+    function buildFeedbackPrompt(inputs, classification) {
+      const timeLabel = inputs.timeOfDay === "full night" ? "full-night" : inputs.timeOfDay;
+
+      if (inputs.timeOfDay === "afternoon" && (inputs.weather === "clear" || inputs.weather === "cloudy")) {
+        return {
+          question: `I understand you're looking for an ${timeLabel} date around ${classification.neighborhood}. Should the agent spend the daylight outside, feature rooftop-style views, or keep the scenic moment shorter?`,
+          options: [
+            { value: "outside", label: "Spend most time outside", instruction: "Prioritize daylight walking, parks, waterfront paths, and open-air scenic moments." },
+            { value: "rooftop", label: "Feature rooftop views", instruction: "Use rooftop-bar-style or terrace-style stops without naming exact restaurants." },
+            { value: "views", label: "Prioritize scenic views", instruction: "Make a skyline, water, or hilltop view the emotional center of the date." },
+            { value: "balanced", label: "Keep it balanced", instruction: "Blend one scenic moment with an easy indoor or cafe anchor." }
+          ]
+        };
+      }
+
+      if (inputs.weather === "rainy" || inputs.weather === "cold") {
+        return {
+          question: `Seattle weather is ${inputs.weather}. Should the agent lean fully indoors, keep one dramatic scenic moment, or plan a cozy drinks-and-dessert route?`,
+          options: [
+            { value: "indoor", label: "Keep it mostly indoors", instruction: "Cluster covered, warm, and low-transfer stops." },
+            { value: "brief-view", label: "One brief scenic view", instruction: "Allow one short scenic stop, then move quickly back indoors." },
+            { value: "cozy-drinks", label: "Cozy drinks and dessert", instruction: "Add a warm drink, dessert, or lounge-style ending." },
+            { value: "flexible", label: "Build in flexible swaps", instruction: "Make each outdoor idea easy to replace with an indoor alternative." }
+          ]
+        };
+      }
+
+      if (inputs.specialOccasion === "yes") {
+        return {
+          question: "This is a special occasion. Should the agent make it feel elegant, personal, or playful?",
+          options: [
+            { value: "elegant", label: "Elegant and polished", instruction: "Prefer reservation-worthy pacing, quieter settings, and a final toast." },
+            { value: "personal", label: "Personal and thoughtful", instruction: "Add one intimate detail such as a favorite dessert, photo moment, or handwritten-card pause." },
+            { value: "playful", label: "Playful celebration", instruction: "Add a game, interactive stop, or lively neighborhood energy." },
+            { value: "surprise", label: "Small surprise moment", instruction: "Include one gentle surprise without making the night feel overproduced." }
+          ]
+        };
+      }
+
+      return {
+        question: `I understand you're looking for a ${inputs.vibe} ${timeLabel} date in Seattle. Should the agent optimize for scenic views, food focus, easy conversation, or neighborhood exploring?`,
+        options: [
+          { value: "views", label: "Scenic views", instruction: "Make one recognizable Seattle view the highlight." },
+          { value: "food", label: "Food-focused route", instruction: "Let cuisine and dessert drive the plan while keeping activity light." },
+          { value: "conversation", label: "Easy conversation", instruction: "Favor quieter stops, short transfers, and time to linger." },
+          { value: "explore", label: "Neighborhood exploring", instruction: "Add a local-feeling wander, market, bookstore, record shop, or waterfront moment." }
+        ]
+      };
+    }
+
+    function classifyDateType(inputs) {
+      const neighborhood = neighborhoods[inputs.vibe][inputs.weather];
+      let dateType = "Balanced Seattle Date";
+
+      if (inputs.specialOccasion === "yes" && inputs.vibe === "romantic") {
+        dateType = "Occasion-Ready Romantic Date";
+      } else if (inputs.weather === "rainy" || inputs.weather === "cold") {
+        dateType = inputs.vibe === "adventurous" ? "Weather-Smart Urban Explorer Date" : "Cozy Indoor-Forward Date";
+      } else if (inputs.vibe === "adventurous" || inputs.activityLevel === "high") {
+        dateType = "Active Seattle Explorer Date";
+      } else if (inputs.vibe === "fun") {
+        dateType = "Playful Neighborhood Date";
+      } else if (inputs.vibe === "cozy") {
+        dateType = "Slow-Burn Cozy Date";
+      } else if (inputs.timeOfDay === "afternoon") {
+        dateType = "Afternoon Market and View Date";
+      }
+
+      return { dateType, neighborhood, weatherAdjustment: weatherAdjustments[inputs.weather] };
+    }
+
+    function generateDraftItinerary(inputs, classification, midloopFeedback) {
+      const stopCount = inputs.timeOfDay === "afternoon" ? 2 : inputs.timeOfDay === "full night" ? 4 : 3;
+      const stops = [createOpeningStop(inputs, classification)];
+
+      if (inputs.timeOfDay === "afternoon") {
+        stops.push(createAfternoonSecondStop(inputs, classification));
+      } else {
+        stops.push(createDinnerStop(inputs, classification));
+      }
+      if (stopCount >= 3) {
+        stops.push(createThirdStop(inputs, classification));
+      }
+      if (stopCount === 4) {
+        stops.push(createFourthStop(inputs, classification));
+      }
+
+      const shapedStops = applyFeedbackToStops(stops, inputs, classification, midloopFeedback);
+
+      return {
+        date_title: `${capitalize(inputs.vibe)} ${classification.neighborhood} plan`,
+        date_type: classification.dateType,
+        weather_adjustment: classification.weatherAdjustment,
+        itinerary: normalizeStopNumbers(shapedStops),
+        review_notes: [],
+        backup_option: backupOptions[inputs.weather],
+        final_note: "Draft ready for self-review."
+      };
+    }
+
+    function reviewDraft(draftPlan, inputs, classification, midloopFeedback) {
+      const notes = [];
+      const outdoorCount = draftPlan.itinerary.filter(isOutdoorStop).length;
+
+      notes.push(`Coherence: The route is strongest when it stays anchored around ${classification.neighborhood}; avoid adding a far-away stop just for variety.`);
+
+      if ((inputs.weather === "rainy" || inputs.weather === "cold") && outdoorCount > 1) {
+        notes.push("Weather fit: The draft has too much outdoor time for the forecast; reduce exposure and make the scenic piece optional.");
+      } else {
+        notes.push(`Weather fit: The draft mostly respects the ${inputs.weather} forecast, but it should still include a clear backup option.`);
+      }
+
+      if (inputs.timeOfDay === "full night" && draftPlan.itinerary.length < 4) {
+        notes.push("Pacing: A full-night plan needs one more lightweight stop so dinner is not carrying the entire experience.");
+      } else if (inputs.activityLevel === "low" && draftPlan.itinerary.length > 3) {
+        notes.push("Pacing: Keep transfers short and give the couple time to linger instead of packing in too many moments.");
+      } else {
+        notes.push("Pacing: The stop count is workable, but the final version should make the transition between stops feel intentional.");
+      }
+
+      notes.push(inputs.specialOccasion === "yes"
+        ? "Creativity: Add a small occasion-worthy detail, such as a view, reserved dessert, or handwritten-card moment."
+        : "Creativity: Add one Seattle-specific detail so the plan feels curated rather than generic.");
+
+      notes.push(`User feedback: The user chose "${midloopFeedback.label}", so the final plan should ${midloopFeedback.instruction.charAt(0).toLowerCase()}${midloopFeedback.instruction.slice(1)}`);
+      if (midloopFeedback.note) {
+        notes.push(`User note: Incorporate this preference without breaking the route: "${midloopFeedback.note}".`);
+      }
+
+      return notes;
+    }
+
+    function improveItinerary(draftPlan, reviewNotes, inputs, classification, midloopFeedback, apiFeedback) {
+      const refinedStops = draftPlan.itinerary.map((stop) => refineStop(stop, inputs, midloopFeedback));
+      const finalStops = adjustStopMix(refinedStops, inputs, classification);
+      const occasion = inputs.specialOccasion === "yes" ? "Celebration " : "";
+      const weatherWord = inputs.weather === "clear" ? "View" : capitalize(inputs.weather);
+      const occasionLine = inputs.specialOccasion === "yes"
+        ? " Add one personal detail before the final stop so the night feels specific to the person, not just the city."
+        : "";
+      const apiNotes = apiFeedback.notes.map((note) => `API refinement: ${note}`);
+      const apiLine = apiFeedback.ok
+        ? ` The API refinement suggested: ${apiFeedback.toneAdjustment}`
+        : " The API refinement call was attempted; the deterministic fallback kept the plan moving.";
+
+      return {
+        date_title: `${occasion}${weatherWord} Date in ${classification.neighborhood}`,
+        date_type: classification.dateType,
+        weather_adjustment: classification.weatherAdjustment,
+        itinerary: normalizeStopNumbers(finalStops),
+        review_notes: reviewNotes.concat(apiNotes),
+        backup_option: backupOptions[inputs.weather],
+        final_note: `This plan is clustered around ${classification.neighborhood}, balances ${inputs.vibe} energy with ${inputs.activityLevel} activity, uses the midloop preference for ${midloopFeedback.label.toLowerCase()}, and keeps the ${inputs.weather} forecast in mind.${occasionLine}${apiLine}`
+      };
+    }
+
+    function createOpeningStop(inputs, classification) {
+      if (inputs.weather === "rainy") {
+        return {
+          category: "activity",
+          name: `${classification.neighborhood} covered wander`,
+          description: "Start with a relaxed indoor-forward stroll through a covered market, bookstore, record-shop, or gallery-style block before dinner.",
+          why_it_fits: "It makes the rain part of the mood while keeping the first stop low-friction and easy to extend."
+        };
+      }
+
+      if (inputs.weather === "cold") {
+        return {
+          category: "activity",
+          name: `${classification.neighborhood} warm-up stop`,
+          description: "Begin with a cafe, tea, or listening-room-style stop where the date can settle in before moving to the main meal.",
+          why_it_fits: "A warm first stop softens the cold and gives the night an unhurried start."
+        };
+      }
+
+      if (inputs.activityLevel === "high" || inputs.vibe === "adventurous") {
+        return {
+          category: "activity",
+          name: `${classification.neighborhood} active city opener`,
+          description: "Kick off with a waterfront walk, hilltop viewpoint, or light urban adventure that feels distinctly Seattle without requiring a long drive.",
+          why_it_fits: "It matches the higher activity level and creates a shared memory before the sit-down portion."
+        };
+      }
+
+      return {
+        category: inputs.timeOfDay === "afternoon" ? "scenic stop" : "scenic stop",
+        name: inputs.timeOfDay === "afternoon" ? `${classification.neighborhood} afternoon view` : `${classification.neighborhood} golden-hour pause`,
+        description: inputs.timeOfDay === "afternoon"
+          ? "Begin with a slow scenic stop that leaves room for conversation, photos, and a flexible next move."
+          : "Start with a short viewpoint or neighborhood stroll before dinner, keeping the route tight and the mood intentional.",
+        why_it_fits: inputs.timeOfDay === "afternoon"
+          ? "Afternoon timing works well with natural light and a lower-pressure start."
+          : "It creates a romantic Seattle opening without making the couple rush across town."
+      };
+    }
+
+    function createDinnerStop(inputs, classification) {
+      const budgetPhrase = { "$": "casual counter-service or neighborhood cafe", "$$": "comfortable neighborhood bistro", "$$$": "reservation-worthy, example-style restaurant" }[inputs.budget];
+      const occasionDetail = inputs.specialOccasion === "yes" ? " Ask for a quieter table or plan a small dessert surprise." : "";
+      return {
+        category: "dinner",
+        name: `${capitalize(inputs.cuisine)} dinner in ${classification.neighborhood}`,
+        description: `Choose a ${budgetPhrase} with ${inputs.cuisine}-leaning dishes, close enough to the first stop that the route still feels calm.${occasionDetail}`,
+        why_it_fits: "The cuisine preference becomes the anchor while the neighborhood keeps the plan realistic."
+      };
+    }
+
+    function createAfternoonSecondStop(inputs, classification) {
+      if (inputs.activityLevel === "high" || inputs.vibe === "adventurous") {
+        return {
+          category: "activity",
+          name: `${classification.neighborhood} mini adventure`,
+          description: "Add a second light activity, such as a waterfront loop, neighborhood mural walk, or market-to-viewpoint wander.",
+          why_it_fits: "It gives the afternoon enough motion while staying realistic for daylight hours."
+        };
+      }
+
+      return {
+        category: "dessert",
+        name: `${classification.neighborhood} coffee and dessert pause`,
+        description: `Pair the first stop with a cafe, bakery, or dessert counter that can also satisfy a ${inputs.cuisine}-leaning snack if available.`,
+        why_it_fits: "A casual second stop keeps an afternoon date flexible, affordable, and conversation-friendly."
+      };
+    }
+
+    function createThirdStop(inputs, classification) {
+      if (inputs.vibe === "fun") {
+        return {
+          category: "drinks",
+          name: `${classification.neighborhood} game-bar-style nightcap`,
+          description: "Finish with a playful drinks stop, arcade-style bar, or mocktail lounge where the date can loosen up after dinner.",
+          why_it_fits: "It extends the fun vibe without requiring a formal second reservation."
+        };
+      }
+
+      if (inputs.vibe === "cozy" || inputs.weather === "cold" || inputs.weather === "rainy") {
+        return {
+          category: "dessert",
+          name: `${classification.neighborhood} dessert and warm drinks`,
+          description: "Add a dessert counter, late cafe, or chocolate-and-tea stop within a short walk or rideshare.",
+          why_it_fits: "A warm final stop adds comfort and gives the plan a gentle landing."
+        };
+      }
+
+      if (inputs.vibe === "adventurous") {
+        return {
+          category: "scenic stop",
+          name: `${classification.neighborhood} after-dinner view`,
+          description: "Take a brief waterfront or skyline-view pause, with the option to shorten it if weather or energy changes.",
+          why_it_fits: "It adds a sense of discovery while staying flexible."
+        };
+      }
+
+      return {
+        category: "dessert",
+        name: `${classification.neighborhood} dessert finale`,
+        description: "Close with a shared dessert, gelato, or pastry stop that feels celebratory without overcomplicating the route.",
+        why_it_fits: "Dessert keeps the final beat sweet, relaxed, and easy to personalize."
+      };
+    }
+
+    function createFourthStop(inputs, classification) {
+      if (inputs.specialOccasion === "yes") {
+        return {
+          category: "scenic stop",
+          name: "Private final-view moment",
+          description: "End with a short, quiet viewpoint pause and a small occasion detail, like a handwritten note or photo together.",
+          why_it_fits: "A final private moment makes the full night feel intentional and memorable."
+        };
+      }
+
+      if (inputs.budget === "$") {
+        return {
+          category: "scenic stop",
+          name: "Low-cost Seattle finale",
+          description: "Take a short stroll near the water, a bridge view, or a neighborhood overlook before calling it a night.",
+          why_it_fits: "It adds a fourth stop without adding much cost."
+        };
+      }
+
+      return {
+        category: "drinks",
+        name: `${classification.neighborhood} final toast`,
+        description: "Add a relaxed wine-bar-style, cider, or zero-proof cocktail stop where the couple can recap the night.",
+        why_it_fits: "A calm nightcap gives a full-night date a satisfying final rhythm."
+      };
+    }
+
+    function applyFeedbackToStops(stops, inputs, classification, midloopFeedback) {
+      const shaped = stops.map((stop) => ({ ...stop }));
+      const firstStop = shaped[0];
+      const lastStop = shaped[shaped.length - 1];
+
+      firstStop.why_it_fits = `${firstStop.why_it_fits} Midloop feedback asked the agent to optimize for ${midloopFeedback.label.toLowerCase()}.`;
+
+      if (midloopFeedback.choice === "outside") {
+        firstStop.category = "activity";
+        firstStop.description = "Spend the opening stretch outside with a daylight walk, waterfront path, park edge, or open-air viewpoint before easing into the next stop.";
+        firstStop.why_it_fits = `${firstStop.why_it_fits} It gives the date the outdoor emphasis the user requested.`;
+      }
+
+      if (midloopFeedback.choice === "rooftop") {
+        const viewStopIndex = shaped.findIndex((stop) => stop.category === "dinner" || stop.category === "drinks");
+        const targetIndex = viewStopIndex === -1 ? shaped.length - 1 : viewStopIndex;
+        shaped[targetIndex].name = `Rooftop-style ${shaped[targetIndex].name}`;
+        shaped[targetIndex].description = `${shaped[targetIndex].description} Choose a rooftop-bar-style, terrace-style, or window-view setting rather than a specific named restaurant.`;
+        shaped[targetIndex].why_it_fits = `${shaped[targetIndex].why_it_fits} This directly answers the user's request for elevated Seattle views.`;
+      }
+
+      if (midloopFeedback.choice === "views" || midloopFeedback.choice === "brief-view") {
+        firstStop.category = "scenic stop";
+        firstStop.name = `${classification.neighborhood} skyline-and-water view`;
+        firstStop.description = midloopFeedback.choice === "brief-view"
+          ? "Use one short viewpoint pause, then move quickly back toward the indoor anchor."
+          : "Make a skyline, water, or hilltop view the emotional center of the date without sending the couple across town.";
+        firstStop.why_it_fits = `${firstStop.why_it_fits} A recognizable Seattle view gives the plan a stronger sense of place.`;
+      }
+
+      if (midloopFeedback.choice === "indoor" || midloopFeedback.choice === "flexible") {
+        shaped.forEach((stop) => {
+          if (isOutdoorStop(stop)) {
+            stop.description = `${stop.description} Keep this optional and pair it with a covered nearby backup.`;
+            stop.why_it_fits = `${stop.why_it_fits} The route stays weather-safe instead of depending on outdoor comfort.`;
+          }
+        });
+      }
+
+      if (midloopFeedback.choice === "cozy-drinks") {
+        lastStop.category = "dessert";
+        lastStop.name = `${classification.neighborhood} cozy drinks and dessert`;
+        lastStop.description = "End with warm drinks, dessert, or a soft lounge-style stop close to the previous stop.";
+        lastStop.why_it_fits = "It turns the weather constraint into a cozy final beat.";
+      }
+
+      if (midloopFeedback.choice === "food") {
+        shaped.forEach((stop) => {
+          if (stop.category === "dinner" || stop.category === "dessert") {
+            stop.description = `${stop.description} Leave enough time to linger over the food rather than rushing to the next stop.`;
+          }
+        });
+      }
+
+      if (midloopFeedback.choice === "conversation") {
+        shaped.forEach((stop) => {
+          stop.why_it_fits = `${stop.why_it_fits} The stop supports quieter conversation and short transitions.`;
+        });
+      }
+
+      if (midloopFeedback.choice === "explore") {
+        firstStop.category = "activity";
+        firstStop.description = "Start with a local-feeling neighborhood wander through a market block, bookstore corridor, record shop, mural stretch, or waterfront edge.";
+        firstStop.why_it_fits = `${firstStop.why_it_fits} It gives the date discovery without making the route unrealistic.`;
+      }
+
+      if (midloopFeedback.choice === "elegant" || midloopFeedback.choice === "personal" || midloopFeedback.choice === "surprise") {
+        lastStop.description = `${lastStop.description} Add a small ${midloopFeedback.choice === "elegant" ? "toast" : "personal detail"} so the ending feels intentional.`;
+        lastStop.why_it_fits = `${lastStop.why_it_fits} The ending now matches the special-occasion feedback.`;
+      }
+
+      if (midloopFeedback.choice === "playful") {
+        firstStop.description = `${firstStop.description} Add a light interactive element, like a casual game, photo challenge, or tiny neighborhood scavenger prompt.`;
+      }
+
+      if (midloopFeedback.note) {
+        lastStop.description = `${lastStop.description} User note to honor: ${midloopFeedback.note}.`;
+      }
+
+      return shaped;
+    }
+
+    function refineStop(stop, inputs, midloopFeedback) {
+      const refined = { ...stop };
+
+      if ((inputs.weather === "rainy" || inputs.weather === "cold") && isOutdoorStop(refined)) {
+        refined.description = `${refined.description} Keep this stop brief and treat the indoor backup as the default if conditions turn uncomfortable.`;
+        refined.why_it_fits = `${refined.why_it_fits} The final version makes the weather risk explicit.`;
+      }
+      if (inputs.specialOccasion === "yes" && refined.category === "dinner") {
+        refined.description = `${refined.description} Build in one thoughtful detail: a reservation note, a favorite dessert, or a tiny toast.`;
+        refined.why_it_fits = `${refined.why_it_fits} The special-occasion layer raises the plan without making it stiff.`;
+      }
+      if (inputs.activityLevel === "low" && refined.category === "activity") {
+        refined.description = refined.description.replace("urban adventure", "easy neighborhood wander");
+        refined.why_it_fits = `${refined.why_it_fits} The pace stays gentle enough for conversation.`;
+      }
+
+      if (midloopFeedback.choice === "balanced") {
+        refined.why_it_fits = `${refined.why_it_fits} The stop keeps the user-requested balance between scenic payoff and comfort.`;
+      }
+
+      return refined;
+    }
+
+    function adjustStopMix(stops, inputs, classification) {
+      const improved = [...stops];
+
+      if (inputs.timeOfDay === "full night" && improved.length < 4) {
+        improved.push(createFourthStop(inputs, classification));
+      }
+      if ((inputs.weather === "rainy" || inputs.weather === "cold") && improved.filter(isOutdoorStop).length > 1) {
+        const outdoorIndex = improved.findIndex((stop, index) => index > 0 && isOutdoorStop(stop));
+        if (outdoorIndex !== -1) {
+          improved[outdoorIndex] = {
+            category: "dessert",
+            name: `${classification.neighborhood} indoor dessert reset`,
+            description: "Replace the extra outdoor stretch with a cozy dessert or warm-drink stop close to dinner.",
+            why_it_fits: "The revised plan protects pacing and comfort while keeping the night intimate."
+          };
+        }
+      }
+
+      return inputs.timeOfDay === "afternoon" && inputs.budget !== "$$$" ? improved.slice(0, 2) : improved.slice(0, 4);
+    }
+
+    async function requestApiRefinement(inputs, classification, midloopFeedback, draftPlan, reviewNotes) {
+      if (!inputs.apiToken) {
+        return buildApiFallback("Missing API token.", midloopFeedback);
+      }
+
+      const requestPayload = {
+        model: inputs.apiModel || "gpt-4.1-mini",
+        instructions: [
+          "You are a Seattle date-planning critic helping a class demo show an agentic planning loop.",
+          "Do not invent exact restaurant names. Use place types, neighborhoods, and example-style suggestions.",
+          "Return only valid JSON with this shape: {\"api_notes\":[\"string\",\"string\"],\"tone_adjustment\":\"string\"}.",
+          "Keep every string concise and actionable."
+        ].join(" "),
+        input: JSON.stringify({
+          planner_inputs: {
+            budget: inputs.budget,
+            vibe: inputs.vibe,
+            time_of_day: inputs.timeOfDay,
+            cuisine: inputs.cuisine,
+            activity_level: inputs.activityLevel,
+            special_occasion: inputs.specialOccasion,
+            weather: inputs.weather
+          },
+          classification,
+          midloop_feedback: {
+            question: midloopFeedback.question,
+            choice: midloopFeedback.label,
+            instruction: midloopFeedback.instruction,
+            note: midloopFeedback.note
+          },
+          draft_itinerary: draftPlan.itinerary,
+          self_review: reviewNotes
+        }, null, 2),
+        max_output_tokens: 280
+      };
+
+      try {
+        const response = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${inputs.apiToken}`
+          },
+          body: JSON.stringify(requestPayload)
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const message = data.error && data.error.message ? data.error.message : `HTTP ${response.status}`;
+          throw new Error(message);
+        }
+
+        const text = extractResponseText(data);
+        const parsed = parseApiJson(text);
+        const notes = Array.isArray(parsed.api_notes) && parsed.api_notes.length
+          ? parsed.api_notes.slice(0, 3).map(String)
+          : ["Keep the final plan tightly clustered and explicitly reflect the midloop preference."];
+
+        return {
+          ok: true,
+          notes,
+          toneAdjustment: parsed.tone_adjustment || "make the final route feel more intentional and locally grounded"
+        };
+      } catch (error) {
+        return buildApiFallback(error.message || "The browser could not complete the API call.", midloopFeedback);
+      }
+    }
+
+    function extractResponseText(data) {
+      if (typeof data.output_text === "string") {
+        return data.output_text;
+      }
+
+      if (!Array.isArray(data.output)) {
+        return "";
+      }
+
+      return data.output
+        .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+        .map((part) => part.text || part.output_text || "")
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    function parseApiJson(text) {
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+
+      if (start === -1 || end === -1 || end <= start) {
+        return {};
+      }
+
+      try {
+        return JSON.parse(text.slice(start, end + 1));
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function buildApiFallback(error, midloopFeedback) {
+      return {
+        ok: false,
+        error,
+        notes: [
+          `API call issue: ${error}`,
+          `Fallback refinement: Keep the final plan aligned with "${midloopFeedback.label}" and avoid adding distant stops.`
+        ],
+        toneAdjustment: "preserve the user feedback and keep the route coherent"
+      };
+    }
+
+    function normalizeStopNumbers(stops) {
+      return stops.map((stop, index) => ({
+        stop_number: index + 1,
+        category: stop.category,
+        name: stop.name,
+        description: stop.description,
+        why_it_fits: stop.why_it_fits
+      }));
+    }
+
+    function isOutdoorStop(stop) {
+      const text = `${stop.category} ${stop.name} ${stop.description}`.toLowerCase();
+      return text.includes("view") || text.includes("waterfront") || text.includes("stroll") || text.includes("walk") || text.includes("overlook");
+    }
+
+    function setStage(stageName, state, detail) {
+      const stage = document.querySelector(`[data-stage="${stageName}"]`);
+      const detailEl = stage.querySelector("p");
+      const stateEl = stage.querySelector("em");
+      const copyIndex = state === "running" ? 1 : state === "complete" ? 2 : 0;
+
+      stage.classList.remove("is-running", "is-complete");
+      if (state === "running") {
+        stage.classList.add("is-running");
+      }
+      if (state === "complete") {
+        stage.classList.add("is-complete");
+      }
+
+      detailEl.textContent = detail || stageCopy[stageName][copyIndex];
+      stateEl.textContent = capitalize(state);
+    }
+
+    function resetWorkflow() {
+      Object.keys(stageCopy).forEach((stageName) => {
+        const stage = document.querySelector(`[data-stage="${stageName}"]`);
+        stage.classList.remove("is-running", "is-complete");
+        stage.querySelector("p").textContent = stageCopy[stageName][0];
+        stage.querySelector("em").textContent = "Pending";
+      });
+    }
+
+    function addTrace(message) {
+      const item = document.createElement("li");
+      item.textContent = message;
+      traceLog.appendChild(item);
+    }
+
+    function renderJson(plan) {
+      jsonOutput.textContent = JSON.stringify(plan, null, 2);
+    }
+
+    function renderItinerary(plan) {
+      emptyState.style.display = "none";
+      dateCard.classList.add("is-visible");
+
+      const stopsHtml = plan.itinerary.map((stop) => `
+        <li class="stop">
+          <span class="stop-number">${stop.stop_number}</span>
+          <div>
+            <span class="category">${escapeHtml(stop.category)}</span>
+            <h3>${escapeHtml(stop.name)}</h3>
+            <p>${escapeHtml(stop.description)}</p>
+            <p><strong>Why it fits:</strong> ${escapeHtml(stop.why_it_fits)}</p>
+          </div>
+        </li>
+      `).join("");
+
+      const reviewHtml = plan.review_notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+
+      dateCard.innerHTML = `
+        <div class="date-header">
+          <h2 class="date-title">${escapeHtml(plan.date_title)}</h2>
+          <div class="meta-row">
+            <span class="pill teal">${escapeHtml(plan.date_type)}</span>
+            <span class="pill coral">${plan.itinerary.length} stops</span>
+          </div>
+        </div>
+        <div class="weather-note"><strong>Weather adjustment</strong>${escapeHtml(plan.weather_adjustment)}</div>
+        <ol class="stop-list">${stopsHtml}</ol>
+        <div>
+          <h3 class="small-heading">Self-review notes</h3>
+          <ul class="review-list">${reviewHtml}</ul>
+        </div>
+        <div class="backup-box"><strong>Backup option: ${escapeHtml(plan.backup_option.name)}</strong>${escapeHtml(plan.backup_option.description)}</div>
+        <div class="final-note-box"><strong>Final note</strong>${escapeHtml(plan.final_note)}</div>
+      `;
+    }
+
+    function pause(milliseconds) {
+      return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    }
+
+    function capitalize(value) {
+      return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
